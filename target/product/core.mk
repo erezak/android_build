@@ -122,7 +122,7 @@ PRODUCT_PACKAGES := \
 PRODUCT_COPY_FILES += \
     system/core/rootdir/init.usb.rc:root/init.usb.rc \
     system/core/rootdir/init.trace.rc:root/init.trace.rc \
-    vendor/erez/proprietary/Solid_Explorer_1_3_6.apk:system/app/Solid_Explorer_1_3_6.apk \
+    vendor/erez/proprietary/Solid_Explorer_1_3_8.apk:system/app/Solid_Explorer.apk \
     vendor/erez/proprietary/GooManager_2_1_2.apk:system/app/GooManager_2_1_2.apk
 
 # host-only dependencies
