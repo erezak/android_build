@@ -659,6 +659,7 @@ function eat()
         MODVERSION=`sed -n -e'/ro\.cm\.version/s/.*=//p' $OUT/system/build.prop`
         ZIPFILE=cm-$MODVERSION.zip
         ZIPPATH=$OUT/$ZIPFILE
+        MD5SUMFILE=$ZIPPATH.md5sum
         if [ ! -f $ZIPPATH ] ; then
             echo "Nothing to eat"
             return 1
@@ -680,10 +681,11 @@ function eat()
         if adb push $ZIPPATH /storage/sdcard0/ ; then
             # Optional path for sdcard0 in recovery
             [ -z "$1" ] && DIR=sdcard || DIR=$1
+            MD5FILE=/$DIR/$ZIPFILE.md5
             cat << EOF > /tmp/command
 --update_package=/$DIR/$ZIPFILE
 EOF
-            if adb push /tmp/command /cache/recovery/ ; then
+            if adb push /tmp/command /cache/recovery/ && adb push $MD5SUMFILE $MD5FILE; then
                 echo "Rebooting into recovery for installation"
                 adb reboot recovery
             fi
@@ -698,7 +700,11 @@ EOF
 
 function omnom
 {
-    brunch $*
+    if [ $# -gt 0 -o -z "$TARGET_PRODUCT" ]; then
+        brunch $*
+    else
+        mka bacon
+    fi
     eat
 }
 
@@ -1252,12 +1258,12 @@ function cmremote()
           return 0
         fi
     fi
-    CMUSER=`git config --get review.review.cyanogenmod.com.username`
+    CMUSER=`git config --get review.review.cyanogenmod.org.username`
     if [ -z "$CMUSER" ]
     then
-        git remote add cmremote ssh://review.cyanogenmod.com:29418/$GERRIT_REMOTE
+        git remote add cmremote ssh://review.cyanogenmod.org:29418/$GERRIT_REMOTE
     else
-        git remote add cmremote ssh://$CMUSER@review.cyanogenmod.com:29418/$GERRIT_REMOTE
+        git remote add cmremote ssh://$CMUSER@review.cyanogenmod.org:29418/$GERRIT_REMOTE
     fi
     echo You can now push to "cmremote".
 }
@@ -1387,7 +1393,7 @@ function cmgerrit() {
         $FUNCNAME help
         return 1
     fi
-    local user=`git config --get review.review.cyanogenmod.com.username`
+    local user=`git config --get review.review.cyanogenmod.org.username`
     local review=`git config --get remote.github.review`
     local project=`git config --get remote.github.projectname`
     local command=$1
@@ -1644,7 +1650,7 @@ function cmrebase() {
     echo "Bringing it up to date..."
     repo sync .
     echo "Fetching change..."
-    git fetch "http://review.cyanogenmod.com/p/$repo" "refs/changes/$refs" && git cherry-pick FETCH_HEAD
+    git fetch "http://review.cyanogenmod.org/p/$repo" "refs/changes/$refs" && git cherry-pick FETCH_HEAD
     if [ "$?" != "0" ]; then
         echo "Error cherry-picking. Not uploading!"
         return
